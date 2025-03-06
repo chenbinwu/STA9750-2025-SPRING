@@ -6,8 +6,9 @@
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
+<meta name="author" content="Chenbin Wu">
 
-<title>Chenbin Wu – Mini-Project #01</title>
+<title>Mini-Project #01: NYC Payroll Analysis – Mini-Project #01</title>
 <style>
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
@@ -96,13 +97,19 @@ ul.task-list li input[type="checkbox"] {
 
 <header id="title-block-header" class="quarto-title-block default">
 <div class="quarto-title">
-<h1 class="title">Chenbin Wu</h1>
+<h1 class="title">Mini-Project #01: NYC Payroll Analysis</h1>
 </div>
 
 
 
 <div class="quarto-title-meta">
 
+    <div>
+    <div class="quarto-title-meta-heading">Author</div>
+    <div class="quarto-title-meta-contents">
+             <p>Chenbin Wu </p>
+          </div>
+  </div>
     
   
     
@@ -113,12 +120,110 @@ ul.task-list li input[type="checkbox"] {
 </header>
 
 
-<p>Hi, I am Chenbin Wu, currently a Graduate student at Baruch College studying <strong>Business Analytics</strong> and concentrating in <em>Data Analytics</em>.</p>
-<p>Here is a link to my <a href="https://www.linkedin.com/in/chenbinwu/">LinkedIn</a>.</p>
+<section id="executive-summary" class="level4">
+<h4 class="anchored" data-anchor-id="executive-summary"><strong>Executive Summary:</strong></h4>
+<p>The following analysis utilizes the <a href="https://opendata.cityofnewyork.us/">NYC payroll</a> data to examine payroll trends, identify key figures within the dataset, and evaluate three potential policy proposals:</p>
+<ol type="1">
+<li>Capping salaries at the mayoral level.</li>
+<li>Increasing staffing to reduce overtime expenses.</li>
+<li>Implementing a performance-based pay structure.</li>
+</ol>
+<p>The goal is to understand potential savings, key individuals, agencies, and trends in the city’s payroll system. Each policy is analyzed in terms of its financial impact, implementation feasibility, and potential issues on workforce moral and performance.</p>
 <hr>
-<p>Last Updated: Thursday 03 06, 2025 at 00:20AM</p>
+</section>
+<section id="introduction" class="level4">
+<h4 class="anchored" data-anchor-id="introduction"><strong>Introduction:</strong></h4>
+<p>The City of New York spends significant amounts on payroll across various departments, with substantial portions allocated to overtime pay and high-level salaries. In an effort to address growing payroll expenses, three potential policy initiatives have been explored in this report. These policies are intended to reduce costs, increase efficiency, and ensure fairness within the payroll structure, all while maintaining employee motivation and performance.</p>
+<hr>
+</section>
+<section id="data-collection-and-preparation" class="level4">
+<h4 class="anchored" data-anchor-id="data-collection-and-preparation"><strong>Data Collection and Preparation:</strong></h4>
+<p>The dataset used for this analysis derives from the NYC payroll system. This data is collected in batches using the NYC’s open data platform, where:</p>
+<ul>
+<li><strong>File Formate:</strong> The data is in CVS format, reperesenting city payroll records, including employee names, positions, salaries and compensations, and other related details.</li>
+<li><strong>Data Processing:</strong> Various libraries (e.g., dplyr, jsonlite, httr2, readr, stringr, DT, and scales) are used to clean and process the data.</li>
+</ul>
+<p>Key insights drawn from the data include:</p>
+<ul>
+<li><strong>Employee Compensation:</strong> Calculations of total compensation for key individuals, including salaries, ovetime pay, and other compensations.</li>
+<li><strong>Aggregated Salaries:</strong> Analysis of city-wide payroll figures, employee counts, and overtime statistics.</li>
+</ul>
+<hr>
+</section>
+<section id="key-insights-from-nyc-payroll-data" class="level4">
+<h4 class="anchored" data-anchor-id="key-insights-from-nyc-payroll-data"><strong>Key Insights from NYC Payroll Data:</strong></h4>
+<ul>
+<li><strong>Top Paid Individual:</strong> The highest city total payroll (regular salary + overtime pay) for a single individual is identified.</li>
+<li><strong>Overtime Trends:</strong> The individual with the most overtime hours and the agency with the highest overtime usage are highlighted.</li>
+<li><strong>Highest Paying Agencies:</strong> The agency with the highest average total payroll per employee is identified.</li>
+<li><strong>Payroll Growth:</strong> Over the past 10 years, the city’s aggregate payroll has grown, with the trend showcasing the need for cost control measure.</li>
+</ul>
+<hr>
+</section>
+<section id="policy-proposals" class="level4">
+<h4 class="anchored" data-anchor-id="policy-proposals"><strong>Policy Proposals:</strong></h4>
+<section id="policy-1-capping-salaries-at-the-mayoral-level" class="level5">
+<h5 class="anchored" data-anchor-id="policy-1-capping-salaries-at-the-mayoral-level"><strong>Policy 1: Capping Salaries at the Mayoral Level</strong></h5>
+<ul>
+<li><strong>Objective:</strong> To limit compensation of city employees to the mayor’s total pay, as a mean to reduce government spending.</li>
+<li><strong>Analysis:</strong>
+<ul>
+<li>The mayor’s salary is calculated by summing his regular pay and overtime for each fiscal year.</li>
+<li>Employees earning above the mayor’s salary are identified, and their salary reductios are computed by deducting the mayor’s salary from their total pay.</li>
+<li>A benchmark of $10 million in savings was administrated to determine whether the proposal would have significant impact.</li>
+<li><strong>Potential Savings:</strong> The total savings from implementing this policy is approximately $3.4 billion. Agencies, such as Department of Pedagogical, Fire Department, and Police Department would bear the brunt of the salary caps.</li>
+</ul></li>
+<li><strong>Recommendation:</strong> While the policy could yield total savings exceeding $10 million, it may affect employee morale (e.g., lack of motivation), especially amonst high-level positions. Consideration should be given to alternative savings strategies that target overtime reduction.</li>
+</ul>
+</section>
+<section id="policy-2-increasing-staffing-to-reduce-overtime-expenses" class="level5">
+<h5 class="anchored" data-anchor-id="policy-2-increasing-staffing-to-reduce-overtime-expenses"><strong>Policy 2: Increasing Staffing to Reduce Overtime Expenses</strong></h5>
+<ul>
+<li><p><strong>Objectives:</strong> To reduce the need for overtime by increasing the number of full-time employees in key agencies.</p></li>
+<li><p><strong>Analysis:</strong></p>
+<ul>
+<li>Overtime data is analyzed across various agencies, with an estimate of the number of full-time employees needed to replace overtime.</li>
+<li><strong>Cost Comparison:</strong> The cost of overtime is compared to the potential cost of hiring full-time employees to replace overtime hours.</li>
+<li><strong>Savings Potential:</strong> Agencies with the higher overtime costs could save significant amounts by replacing overtime with regular employees.</li>
+</ul></li>
+<li><p><strong>Recommendation:</strong> This policy has the potential for substantial savings, especial in agencies with significant overtime costs. The financial viability of this approach should be further explored with specific focus on high overtime usage agencies.</p></li>
+</ul>
+</section>
+<section id="policy-3-implementing-a-performance-based-pay-structure" class="level5">
+<h5 class="anchored" data-anchor-id="policy-3-implementing-a-performance-based-pay-structure"><strong>Policy 3: Implementing a Performance-Based Pay Structure</strong></h5>
+<ul>
+<li><p><strong>Objective:</strong> Introduce a performance-based pay structure where employees are rewarded based on their performance, including task completion, complaints received, and response times.</p></li>
+<li><p><strong>Analysis:</strong></p>
+<ul>
+<li>A sample employee dataset is used to create performance-based pay by introducing bonuses for task completion and penalties for complaints. In this case, a 10% bonus is introduced for exceeding 100 tasks and a 5% reduction penalty is calculated for 3+ complaints. The performance is calculated by taking the difference of the bonus and the penalty.</li>
+<li>The total cost of payroll before and after implementing the performance-based pay structure is compared.</li>
+<li><strong>Potential Savings:</strong> By adjusting compensation based on performance, savings are realized in the form of reduced pay for low-performing employees. A total savings of $1.2 million is approximating amongst the Health, the Police, and the Public Works departments.</li>
+<li><strong>Visualization:</strong> A boxplot is provided to visualize how compensation would change across agencies under the new pay structure.</li>
+</ul></li>
+</ul>
+<p><img src="Rplot01.png" class="img-fluid"></p>
+<ul>
+<li><strong>Recommendation:</strong> This policy could lead to some cost savings, particularly for underperforming employees. However, careful consideration of performance metrics and employee buy-in is needed to ensure effectiveness and fairness in the system.</li>
+</ul>
+<hr>
+</section>
+</section>
+<section id="summary-of-findings-and-recommendations" class="level4">
+<h4 class="anchored" data-anchor-id="summary-of-findings-and-recommendations"><strong>Summary of Findings and Recommendations</strong></h4>
+<ol type="1">
+<li><strong>Capping Salaries:</strong> Potential savings from capping salaries at the mayoral level could be substantial. However, the policy risks significant morale impacts among higher-paid employees. A balance between cost-saving and employee satisfaction should be considered.</li>
+<li><strong>Increasing Staffing:</strong> This proposal could reduce overtime-related expenses significantly, especially for agencies with the highest overtime usage. Further analysis is needed on the recruitment and training costs associated with increasing staffing levels.</li>
+<li><strong>Performance-Based Pay:</strong> Implementing a performance-based pay structure could encourage higher productivity but requires careful planning to ensure fairness and avoid unintended consequences, such as employee dissatisfaction.</li>
+</ol>
+<hr>
+</section>
+<section id="conclusion" class="level4">
+<h4 class="anchored" data-anchor-id="conclusion"><strong>Conclusion:</strong></h4>
+<p>All three policy proposals offer potential solutions to manage NYC’s growing payroll expenses. However, each comes with its own set of challenges and considerations. A detailed cost-benefit analysis, alongside employee feedback, will be crucial in selecting the most viable strategy. Further testing and pilot programs are recommended before widespread implementation.</p>
+<hr>
 
 
+</section>
 
 </main> <!-- /main -->
 <script id="quarto-html-after-body" type="application/javascript">
