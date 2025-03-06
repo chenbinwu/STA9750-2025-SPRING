@@ -1,5 +1,7 @@
 ---
 title: "Mini-Project #01: NYC Payroll Analysis"
+author: "Chenbin Wu"
+output: html
 ---
 
 #### **Executive Summary:**
