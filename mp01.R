@@ -216,7 +216,7 @@ payroll_growth
 mayor_salary <- payroll_data |>
   filter(first_name == 'Eric', last_name == 'Adams') |>
   group_by(fiscal_year) |>
-  summarize(mayor_salary = sum(regular_gross_paid + total_ot_paid, na.rm = True), .groups = 'drop')
+  summarize(mayor_salary = sum(regular_gross_paid + total_ot_paid, na.rm = TRUE), .groups = 'drop')
 
 if(!file.exists("data/mp01/nyc_payroll_export.csv")){
   dir.create("data/mp01", showWarnings=FALSE, recursive=TRUE)
@@ -496,15 +496,82 @@ overtime_data <- overtime_data |>
   )
 head(overtime_data)
 
-# Calculate how many full-time employees are needed to replace overtime hours
-overtime_data <- overtime_data |>
-  mutate(
-    total_overtime_hours = total_overtime_cost / (1.5 * avg_regular_salary),  # Convert cost into hours
-    employees_needed = ceiling(total_overtime_hours / full_time_hours_per_week)  # Round up to the nearest employee
+overtime_data <- payroll_data |>
+  group_by(agency_name, title_description) |>
+  summarize(
+    avg_regular_salary = mean(base_salary, na.rm = TRUE),
+    total_overtime_cost = sum(total_ot_paid, na.rm = TRUE),
+    .groups = 'drop'
   ) |>
+  left_join(overtime_data, by = c("agency_name", "title_description")) |>
   mutate(
     cost_of_overtime = total_overtime_cost,
     cost_of_replacement = employees_needed * full_time_hours_per_week * avg_regular_salary,
     savings = cost_of_overtime - cost_of_replacement
   )
+
 head(overtime_data)
+
+agency_savings <- overtime_data |>
+  group_by(agency_name) |>
+  summarize(
+    total_savings = sum(savings, na.rm = TRUE),
+    total_employees_needed = sum(employees_needed, na.rm = TRUE),
+    .groups = 'drop'
+  ) |>
+  arrange(desc(total_savings))
+
+head(agency_savings)
+
+
+library(ggplot2)
+ggplot(agency_savings, aes(x = reorder(agency_name, total_savings), y = total_savings)) +
+  geom_bar(stat = "identity") +
+  coord_flip() +
+  labs(title = "Potential Savings from Increasing Staffing to Reduce Overtime", 
+       x = "Agency", y = "Total Savings ($)") +
+  theme_minimal()
+
+#Policy3: Implement a Performance Based Pay Strutcure
+# Assuming payroll_data and performance_data are available
+# We will merge the two datasets to include performance information
+# Step 1: Define a sample dataset for employees with their KPIs and current pay
+employee_data <- data.frame(
+  employee_id = 1:1000,
+  agency_name = rep(c("Health Department", "Police", "Public Works"), length.out = 1000),
+  base_salary = rnorm(1000, mean = 60000, sd = 10000),  # Example base salary
+  tasks_completed = sample(80:120, 1000, replace = TRUE),  # Random tasks completed
+  complaints_received = sample(0:10, 1000, replace = TRUE),  # Number of complaints
+  response_time = sample(30:60, 1000, replace = TRUE)  # Response time in minutes
+)
+
+# Step 2: Set performance benchmarks (e.g., complete 100 tasks, no more than 3 complaints)
+employee_data <- employee_data |>
+  mutate(
+    task_bonus = ifelse(tasks_completed >= 100, base_salary * 0.10, 0),  # 10% bonus for exceeding 100 tasks
+    complaint_penalty = ifelse(complaints_received <= 3, 0, base_salary * 0.05),  # Penalty if > 3 complaints
+    performance_bonus = task_bonus - complaint_penalty,
+    total_compensation = base_salary + performance_bonus
+  )
+
+# Step 3: Calculate total payroll costs before and after performance-based pay
+current_payroll <- sum(employee_data$base_salary)
+projected_payroll <- sum(employee_data$total_compensation)
+
+# Step 4: Visualize potential savings
+library(ggplot2)
+
+ggplot(employee_data, aes(x = agency_name, y = total_compensation, fill = agency_name)) +
+  geom_boxplot() +
+  labs(title = "Projected Pay Under Performance-Based Structure", x = "Agency", y = "Total Compensation ($)") +
+  theme_minimal()
+
+# Step 5: Calculate savings by agency
+savings_by_agency <- employee_data |>
+  group_by(agency_name) |>
+  summarize(
+    total_savings = sum(base_salary - total_compensation, na.rm = TRUE)
+  )
+
+# Step 6: Print the savings by agency
+print(savings_by_agency)
