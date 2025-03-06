@@ -3,10 +3,10 @@ project:
   output-dir: docs
 
 website:
-  title: "STA 9750 Submission Material"
+  title: "Mini-Project #01"
   description:
     Course Projects for STA 9750 at Baruch College
-  site-url: "https:// chenbinwu.github.io/STA9750-2025-SPRING/"
+  site-url: "https:// chenbinwu.github.io/STA9750-2025-SPRING/mp01.html"
   navbar:
     background: primary
     search: false

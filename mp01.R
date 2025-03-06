@@ -475,6 +475,8 @@ if(total_savings > 10000000) {
 } else {
   recommendation <- "The policy might not yield enough savings to justify its implementation. Other policies, such as targeting overtime redution, might provide better outcomes."
 }
+
+total_savings
 summary_savings
 recommendation
 
@@ -557,7 +559,8 @@ employee_data <- employee_data |>
 # Step 3: Calculate total payroll costs before and after performance-based pay
 current_payroll <- sum(employee_data$base_salary)
 projected_payroll <- sum(employee_data$total_compensation)
-
+current_payroll
+projected_payroll
 # Step 4: Visualize potential savings
 library(ggplot2)
 
@@ -575,3 +578,4 @@ savings_by_agency <- employee_data |>
 
 # Step 6: Print the savings by agency
 print(savings_by_agency)
+total_savings
