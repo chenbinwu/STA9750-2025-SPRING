@@ -1,0 +1,13 @@
+---
+title: "Chenbin Wu"
+---
+Hi, I am Chenbin Wu, currently a Graduate student at Baruch College studying **Business Analytics** and concentrating in *Data Analytics*.
+
+Here is a link to my [LinkedIn](https://www.linkedin.com/in/chenbinwu/).jhiu
+
+```{r}
+#| include: false
+1+1
+```
+--------------
+Last Updated: `r format(Sys.time(), "%A %m %d, %Y at %H:%M%p")`

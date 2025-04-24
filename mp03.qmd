@@ -1,0 +1,640 @@
+---
+title: "mp03"
+author: Chenbin Wu
+output: html
+---
+
+## **🎧 The Ultimate Vibe Journey: Why Chenbin's Playlist Rules the Internet**
+
+### **Description: **
+
+Chenbin’s Playlist is not just a mix of songs—it’s a masterfully curated emotional and musical journey designed through deep data analysis, love for music, and intentional artistry. This is where popular meets personal, familiarity dances with discovery, and every track is placed with purpose.
+
+From chart-toppers to hidden gems, this playlist blends tempo, energy, danceability, and emotional tone to craft a seamless listening experience. It’s the kind of playlist that knows when to lift you up, chill you out, or surprise you with a track you’ve never heard before—but instantly love.
+
+### Data Import and Cleaning
+
+We began by importing the necessary libraries: dplyr, tidyr, stringr, purrr, jsonlite, ggplot2, and lubridate. Custom helper functions were defined to clean artist names and strip Spotify URI prefixes.
+
+- The songs metadata was downloaded from GitHub if not already present locally, loaded using read.csv().
+
+- Playlists were loaded from multiple JSON files using fromJSON().
+
+- A function process_playlists() was used to transform nested JSON playlist data into a tidy, track-level dataframe.
+
+```{r}
+#| echo: true
+#| message: false
+#| warning: false
+#| code-fold: true
+#| code-summary: "Show the code"
+library(dplyr)
+library(tidyr)
+library(stringr)
+library(purrr)
+library(jsonlite)
+library(ggplot2)
+library(lubridate)
+
+clean_artist_string <- function(x) {
+  x |>
+    str_replace_all("\\['", "") |>
+    str_replace_all("'\\]", "") |>
+    str_replace_all("[ ]?'", "") |>
+    str_replace_all("[ ]*,[ ]*", ",")
+}
+
+# Remove Spotify prefix from URIs
+strip_spotify_prefix <- function(x) {
+  str_replace(x, ".*:", "")
+}
+
+# Load and clean songs data
+load_songs <- function() {
+  dir_path <- "data/mp03"
+  file_path <- file.path(dir_path, "data.csv")
+  url <- "https://raw.githubusercontent.com/gabminamedez/spotify-data/refs/heads/master/data.csv"
+  
+  if (!dir.exists(dir_path)) {
+    dir.create(dir_path, recursive = TRUE)
+  }
+  
+  if (!file.exists(file_path)) {
+    download.file(url, destfile = file_path, method = "libcurl")
+  }
+  
+  songs_df <- read.csv(file_path, stringsAsFactors = FALSE)
+  return(songs_df)
+}
+
+# Load playlist JSON files
+load_playlists <- function(directory = "data/mp03/playlists") {
+  playlist_files <- list.files(directory, pattern = "mpd.slice.*\\.json$", full.names = TRUE)
+  playlists <- lapply(playlist_files, function(file) {
+    fromJSON(file, flatten = TRUE)
+  })
+  return(playlists)
+}
+
+# Process playlists into tidy track-level data
+process_playlists <- function(playlists_data) {
+  track_list <- list()
+  
+  for (i in seq_along(playlists_data)) {
+    playlists_df <- playlists_data[[i]]$playlists
+    
+    for (j in seq_len(nrow(playlists_df))) {
+      playlist <- playlists_df[j, ]
+      playlist_name <- playlist$name
+      playlist_id <- playlist$pid
+      playlist_followers <- playlist$num_followers
+      tracks_df <- playlist$tracks[[1]]
+      
+      for (k in seq_len(nrow(tracks_df))) {
+        track <- tracks_df[k, ]
+        
+        track_data <- data.frame(
+          playlist_name = playlist_name,
+          playlist_id = playlist_id,
+          playlist_position = track$pos + 1,
+          playlist_followers = playlist_followers,
+          track_name = track$track_name,
+          track_id = strip_spotify_prefix(track$track_uri),
+          album_name = track$album_name,
+          album_id = strip_spotify_prefix(track$album_uri),
+          duration = track$duration_ms,
+          artist_name = track$artist_name,
+          artist_id = strip_spotify_prefix(track$artist_uri),
+          stringsAsFactors = FALSE
+        )
+        
+        track_list <- append(track_list, list(track_data))
+      }
+    }
+  }
+  
+  all_tracks <- bind_rows(track_list)
+  return(all_tracks)
+}
+
+SONGS <- load_songs()
+playlists_data <- load_playlists()
+tidy_tracks <- process_playlists(playlists_data)
+```
+
+### Data Exploration
+
+- ***Distinct Tracks and Artists:** Identified 226,229 unique tracks and 81,763 unique artists.
+```{r}
+#| echo: true
+#| message: false
+#| warning: false
+#| code-fold: true
+#| code-summary: "Show the code"
+distinct_tracks <- tidy_tracks |> distinct(track_id) |> nrow()
+distinct_artists <- tidy_tracks |> distinct(artist_id) |> nrow()
+cat("Distinct tracks:", distinct_tracks, "\n")
+cat("Distinct artists:", distinct_artists, "\n")
+```
+
+- ***Top Tracks:** Calculated the top 50 most frequently appearing tracks across playlists.
+```{r}
+#| echo: true
+#| message: false
+#| warning: false
+#| code-fold: true
+#| code-summary: "Show the code"
+top_tracks <- tidy_tracks |>
+  group_by(track_name, artist_name) |>
+  summarise(count = n(), .groups = "drop") |>
+  arrange(desc(count)) |>
+  slice_head(n = 50)
+
+top_tracks
+```
+
+- **Missing Metadata:** Identified the most frequently occurring track that was missing in the SONGS metadata.
+```{r}
+#| echo: true
+#| message: false
+#| warning: false
+#| code-fold: true
+#| code-summary: "Show the code"
+missing_in_songs <- tidy_tracks |>
+  filter(!track_id %in% SONGS$id) |>
+  group_by(track_name, artist_name) |>
+  summarise(count = n(), .groups = "drop") |>
+  arrange(desc(count)) |>
+  slice_head(n = 1)
+
+missing_in_songs
+```
+
+- ***Most Danceable Track:** Identified the track with the highest danceability score and measured its number of playlist appearances.
+```{r}
+#| echo: true
+#| message: false
+#| warning: false
+#| code-fold: true
+#| code-summary: "Show the code"
+most_danceable <- SONGS |>
+  arrange(desc(danceability)) |>
+  slice_head(n = 1)
+
+danceable_appearances <- tidy_tracks |>
+  filter(track_id == most_danceable$id) |>
+  summarise(count = n())
+
+most_danceable_track <- data.frame(
+  track_name = most_danceable$name,
+  artist_name = most_danceable$artists,
+  danceability = most_danceable$danceability,
+  appearances = danceable_appearances$count
+)
+
+most_danceable_track
+```
+
+- ***Playlist Duration:** Found the playlist with the longest average track duration.
+```{r}
+#| echo: true
+#| message: false
+#| warning: false
+#| code-fold: true
+#| code-summary: "Show the code"
+longest_avg_playlist <- tidy_tracks |>
+  group_by(playlist_name, playlist_id) |>
+  summarise(avg_duration = mean(duration, na.rm = TRUE), .groups = "drop") |>
+  arrange(desc(avg_duration)) |>
+  slice_head(n = 1)
+
+longest_avg_playlist
+```
+
+- ***Most Popular Playlist:** Identified based on follower count.
+```{r}
+#| echo: true
+#| message: false
+#| warning: false
+#| code-fold: true
+#| code-summary: "Show the code"
+most_popular_playlist <- tidy_tracks |>
+  distinct(playlist_id, playlist_name, playlist_followers) |>
+  arrange(desc(playlist_followers)) |>
+  slice_head(n = 1)
+
+most_popular_playlist
+```
+
+### **Track Popularity Analysis**
+
+Through our analysis of the playlists, we discovered some standout characteristics. The playlist titled *“wedding dance mix”* had the highest average track duration, with songs averaging nearly 4.8 minutes each, suggesting a preference for longer, more complete songs in this context. Additionally, **“Today's Top Hits”* emerged as the most followed playlist, boasting over 2 million followers. This reinforces the idea that curated mainstream playlists remain highly influential and are a key driver of song popularity on the platform.
+
+```{r}
+#| echo: true
+#| message: false
+#| warning: false
+#| code-fold: true
+#| code-summary: "Show the code"
+joined_df <- inner_join(tidy_tracks, SONGS, by = c("track_id" = "id"))
+
+track_popularity <- joined_df |>
+  group_by(track_id, track_name) |>
+  summarize(
+    playlist_count = n(),
+    avg_popularity = mean(popularity, na.rm = TRUE),
+    .groups = 'drop'
+  )
+```
+
+### **Trends in Popular Analysis**
+
+- **Release Year Distribution:** 
+
+A scatter plot with a linear trendline shows a positive correlation between the number of playlists a song appears in and its average popularity. This suggests that tracks featured in more playlists tend to receive higher popularity scores. The computed correlation coefficient quantifies this relationship.
+```{r}
+#| echo: true
+#| message: false
+#| warning: false
+#| code-fold: true
+#| code-summary: "Show the code"
+SONGS <- SONGS |>
+  mutate(
+    release_year = suppressWarnings(as.numeric(str_sub(release_date, 1, 4)))
+  ) |>
+  filter(!is.na(release_year), release_year > 1900, release_year <= year(Sys.Date()))
+
+joined_df <- inner_join(tidy_tracks, SONGS, by = c("track_id" = "id"))
+
+popular_songs <- joined_df |>
+  filter(popularity >= 80)
+
+ggplot(track_popularity, aes(x = playlist_count, y = avg_popularity)) +
+  geom_point(alpha = 0.5, color = "#1DB954") +
+  geom_smooth(method = "lm", se = FALSE, color = "gray30") +
+  labs(
+    title = "Popularity vs. Playlist Appearances",
+    x = "Number of Playlist Appearances",
+    y = "Average Popularity"
+  ) +
+  theme_minimal()
+correlation <- cor(track_popularity$playlist_count, track_popularity$avg_popularity, use = "complete.obs")
+cat("Correlation between playlist count and popularity:", correlation, "\n")
+```
+
+- **Release Year Distribution:**
+
+A histogram of release years for songs with popularity scores ≥80 shows that most popular tracks were released after 2000, with a clear concentration in the 2010s and early 2020s. This aligns with Spotify’s user base favoring newer music.
+```{r}
+#| echo: true
+#| message: false
+#| warning: false
+#| code-fold: true
+#| code-summary: "Show the code"
+popular_songs <- joined_df |>
+  filter(popularity >= 80)
+
+ggplot(popular_songs, aes(x = release_year)) +
+  geom_histogram(binwidth = 1, fill = "#1DB954", color = "white") +
+  labs(
+    title = "Release Year of Popular Songs",
+    x = "Release Year",
+    y = "Number of Popular Songs"
+  ) +
+  theme_minimal()
+```
+
+- **Danceability Over Time:** 
+A boxplot of danceability by release year indicates that songs released in recent years generally have higher danceability scores, reflecting a growing trend toward rhythm-driven, dance-friendly music.
+```{r}
+#| echo: true
+#| message: false
+#| warning: false
+#| code-fold: true
+#| code-summary: "Show the code"
+ggplot(popular_songs, aes(x = release_year, y = danceability)) +
+  geom_boxplot(fill = "#1DB954") +
+  labs(
+    title = "Danceability by Release Year (Popular Songs)",
+    x = "Release Year",
+    y = "Danceability"
+  ) +
+  theme_minimal()
+```
+
+- **Decade Representation:**
+
+By categorizing songs by decade, we observe that the 2010s are the most represented on user playlists. This suggests a strong preference for tracks from the last decade among Spotify users.
+```{r}
+#| echo: true
+#| message: false
+#| warning: false
+#| code-fold: true
+#| code-summary: "Show the code"
+popular_songs <- popular_songs |>
+  mutate(decade = floor(release_year / 10) * 10)
+
+ggplot(popular_songs, aes(x = factor(decade))) +
+  geom_bar(fill = "#1DB954") +
+  labs(
+    title = "Decade Representation in User Playlists",
+    x = "Decade",
+    y = "Number of Popular Songs"
+  ) +
+  theme_minimal()
+
+```
+
+- **Key Frequency (Polar Plot):**
+
+A polar bar chart visualizes the frequency of musical keys among popular tracks. Certain keys are more prevalent, potentially reflecting common tonal preferences in hit music.
+```{r}
+#| echo: true
+#| message: false
+#| warning: false
+#| code-fold: true
+#| code-summary: "Show the code"
+ggplot(popular_songs, aes(x = factor(key))) +
+  geom_bar(fill = "#1DB954") +
+  coord_polar() +
+  labs(
+    title = "Key Frequency Among Popular Songs",
+    x = "Key",
+    y = "Count"
+  ) +
+  theme_minimal()
+
+```
+
+- **Track Length vs. Popularity:**
+
+A scatter plot with a linear model overlay shows a trend between track duration and popularity. Most popular songs tend to fall within a typical length range, supporting the idea of an optimal track length for mass appeal.
+```{r}
+#| echo: true
+#| message: false
+#| warning: false
+#| code-fold: true
+#| code-summary: "Show the code"
+ggplot(popular_songs, aes(x = duration_ms / 1000, y = popularity)) +  # Convert duration from ms to seconds
+  geom_point(alpha = 0.5, color = "#1DB954") +
+  geom_smooth(method = "lm", se = FALSE, color = "gray30") +
+  labs(
+    title = "Track Length vs. Popularity",
+    x = "Track Length (Seconds)",
+    y = "Popularity"
+  ) +
+  theme_minimal()
+```
+
+- **Energy and Loudness Trends:**
+
+Additional scatter plots reveal that energy and loudness are both positively associated with popularity. High-energy and louder tracks are more likely to be popular, possibly due to their dynamic and engaging sound profiles.
+```{r}
+#| echo: true
+#| message: false
+#| warning: false
+#| code-fold: true
+#| code-summary: "Show the code"
+ggplot(popular_songs, aes(x = energy, y = popularity)) +
+  geom_point(alpha = 0.5, color = "#1DB954") +
+  geom_smooth(method = "lm", se = FALSE, color = "gray30") +
+  labs(
+    title = "Energy vs. Popularity",
+    x = "Energy",
+    y = "Popularity"
+  ) +
+  theme_minimal()
+
+# Loudness vs. Popularity
+ggplot(popular_songs, aes(x = loudness, y = popularity)) +
+  geom_point(alpha = 0.5, color = "#1DB954") +
+  geom_smooth(method = "lm", se = FALSE, color = "gray30") +
+  labs(
+    title = "Loudness vs. Popularity",
+    x = "Loudness",
+    y = "Popularity"
+  ) +
+  theme_minimal()
+
+```
+
+
+### **🎼 Playlist Curation Using Anchor Songs:**
+
+**Anchor:**
+
+We start with two foundational tracks:
+{{< video https://www.youtube.com/watch?v=nIjVuRTm-dc >}}
+*She Will Be Loved - Maroon 5*
+
+{{< video https://www.youtube.com/watch?v=RgKAFK5djSk >}}
+*See You Again (feat. Charlie Puth) - Wiz Khalifa*
+
+These emotionally resonant and tempo-balanced songs set the playlist’s center of gravity.
+
+```{r}
+#| echo: true
+#| message: false
+#| warning: false
+#| code-fold: true
+#| code-summary: "Show the code"
+
+anchor_songs <- SONGS |>
+  filter(name %in% c("She Will Be Loved - Radio Mix", "See You Again (feat. Charles Puth)"))
+# Find playlists that include the anchor songs
+anchor_playlists <- tidy_tracks |>
+  filter(track_name %in% anchor_songs$name)
+```
+**Playlist Co-occurrence:** 
+
+Songs that frequently appeared in the same playlists as the anchor tracks were identified. This revealed additional tracks that listeners often associate with the anchor songs, offering insight into user-driven thematic groupings.
+```{r}
+#| echo: true
+#| message: false
+#| warning: false
+#| code-fold: true
+#| code-summary: "Show the code"
+other_tracks_in_playlists <- tidy_tracks |>
+  filter(playlist_id %in% anchor_playlists$playlist_id) |>
+  filter(!track_name %in% anchor_songs$name) |>
+  group_by(track_name) |>
+  summarise(appearances = n(), .groups = "drop") |>
+  arrange(desc(appearances))
+
+# Show top 5 most common songs in the same playlists
+head(other_tracks_in_playlists, 3)
+
+```
+
+**Key and Tempo Matching:** 
+
+Tracks sharing the same musical key and with tempos within ±10 BPM of an anchor track were filtered to identify musically cohesive options.
+```{r}
+#| echo: true
+#| message: false
+#| warning: false
+#| code-fold: true
+#| code-summary: "Show the code"
+anchor_songs_key_tempo <- anchor_songs |>
+  select(name, key, tempo)
+
+# Find songs with similar key and tempo
+related_key_tempo_songs <- SONGS |>
+  filter(key == anchor_songs_key_tempo$key[1]) |>
+  filter(abs(tempo - anchor_songs_key_tempo$tempo[1]) <= 10) |>
+  filter(!name %in% anchor_songs$name)
+
+# Show the related songs
+head(related_key_tempo_songs, 3)
+```
+
+**Same Artists:**
+
+We identified additional tracks by the same artists as the anchor songs, ensuring the playlist maintains a cohesive sound. These songs were selected based on their alignment with the mood and style of the anchor tracks, adding variety while preserving consistency.
+```{r}
+#| echo: true
+#| message: false
+#| warning: false
+#| code-fold: true
+#| code-summary: "Show the code"
+# Get artists of anchor songs
+anchor_artists <- anchor_songs |>
+  select(artists)
+
+# Find songs by the same artists
+related_artist_songs <- SONGS |>
+  filter(artists %in% anchor_artists$artists) |>
+  filter(!name %in% anchor_songs$name)
+
+# Show related songs by the same artist
+head(related_artist_songs, 5)
+```
+**Year and Mood Similarity:** 
+
+Songs released in the same year with similar acousticness and danceability values were selected to maintain temporal and mood-based consistency.
+```{r}
+#| echo: true
+#| message: false
+#| warning: false
+#| code-fold: true
+#| code-summary: "Show the code"
+anchor_songs_year <- anchor_songs |>
+  select(name, release_year, acousticness, danceability)
+
+# Find songs released in the same year with similar characteristics
+related_year_songs <- SONGS |>
+  filter(release_year == anchor_songs_year$release_year[1]) |>
+  filter(abs(acousticness - anchor_songs_year$acousticness[1]) <= 0.1) |>
+  filter(abs(danceability - anchor_songs_year$danceability[1]) <= 0.1) |>
+  filter(!name %in% anchor_songs$name)
+
+# Show related songs from the same year and with similar attributes
+head(related_year_songs, 3)
+
+```
+
+**Acoustic-Danceability Match: **
+
+Additional tracks with acousticness and danceability within ±0.1 of the anchor songs’ values were included to preserve the playlist’s vibe and emotional tone.
+```{r}
+#| echo: true
+#| message: false
+#| warning: false
+#| code-fold: true
+#| code-summary: "Show the code"
+similar_mood_songs <- SONGS |>
+  filter(abs(danceability - anchor_songs_year$danceability[1]) <= 0.1) %>%
+  filter(abs(acousticness - anchor_songs_year$acousticness[1]) <= 0.1) %>%
+  filter(!name %in% anchor_songs$name)
+
+# Show related songs based on mood
+head(similar_mood_songs, 3)
+```
+
+**Curated Playlist Preview: **
+
+From the analysis, a manually curated list of tracks was compiled, blending well-known hits, deeper cuts, and newer discoveries. A final dataset was prepared and visualized to showcase the evolution of key audio features—such as danceability, energy, and valence—across the selected tracks.
+```{r}
+#| echo: true
+#| message: false
+#| warning: false
+#| code-fold: true
+#| code-summary: "Show the code"
+combined_songs <- bind_rows(
+  other_tracks_in_playlists,
+  related_key_tempo_songs,
+  related_artist_songs,
+  related_year_songs,
+  similar_mood_songs
+)
+
+head (combined_songs, 20)
+```
+
+**The Ultimate Playlist**
+Carefully curated and constantly updated, this playlist is a go-to soundtrack for any mood, moment, or mission. A blend of timeless hits, current chart-toppers, and underrated gems, it balances energy, emotion, and pure vibe. Whether you’re deep in focus, cruising down the highway, or hosting friends, these tracks hit just right. Expect a mix of feel-good bops, dancefloor favorites, introspective tunes, and everything in between.
+
+```{r}
+#| echo: true
+#| message: false
+#| warning: false
+#| code-fold: true
+#| code-summary: "Show the code"
+playlist_track_ids <- c(
+  "4llK75pXNWZz6KAho2Gp16",  # She Will Be Loved - familiar, popular
+  "0mHyQG0yW4La4LctE7Rjbi",  # See You Again - familiar, popular
+  "0W6I1GZD8FWt7WcKe1nD1v",  # New discovery
+  "1qE4lF2gkTW7sirR4vHZBI",  # Less popular (popularity < 50)
+  "3DYVWvPh3kGwPasp7yjahc",  # Popular
+  "5Chkz3nnW0Lsz6Tvn6z1it",  # MGMT - moderate popularity
+  "6QgjcU0zLnzq5OrUoSZ3OK",  # Not popular
+  "0VjIjW4GlUZAMYd2vXMi3b",  # Blinding Lights - popular
+  "7dt6x5M1jzdTEt8oCbisTK",  # Another lesser known
+  "3yfqSUWxFvZELEM4PmlwIR",  # Juice WRLD - moderate popularity
+  "4cOdK2wGLETKBW3PvgPWqT",  # Rickroll — meme-level, familiar
+  "1lDWb6b6ieDQ2xT7ewTC3G"   # Troye Sivan - not familiar
+)
+
+# Filter SONGS dataset to include only selected playlist songs
+playlist_df <- SONGS |>
+  filter(id %in% playlist_track_ids) |>
+  mutate(
+    name = factor(name, levels = name),  # lock order for plotting
+    release_year = as.numeric(str_sub(release_date, 1, 4)),
+    popularity_group = ifelse(popularity < 50, "Not Popular", "Popular")
+  )
+
+# Playlist Name
+playlist_name <- "Chenbin's Ultimate Playlist"
+
+# Playlist Preview
+playlist_df |>
+  select(name, artists, popularity, release_year, danceability, energy, tempo, acousticness)
+
+# Visualization: Playlist Evolution --------------------------------------
+
+library(tidyr)
+library(ggplot2)
+
+# Pivot data for audio features
+playlist_long <- playlist_df |>
+  select(name, danceability, energy, valence, tempo, acousticness) |>
+  pivot_longer(cols = -name, names_to = "feature", values_to = "value")
+
+# Plot evolution across features
+ggplot(playlist_long, aes(x = name, y = value, group = feature, color = feature)) +
+  geom_line(size = 1.2) +
+  geom_point(size = 2) +
+  scale_color_brewer(palette = "Set2") +
+  labs(
+    title = paste("Playlist Evolution –", playlist_name),
+    x = "Track",
+    y = "Feature Value (0–1 normalized where applicable)",
+    color = "Audio Feature"
+  ) +
+  theme_minimal(base_size = 13) +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+# Save your playlist visualization (optional)
+ggsave("playlist_evolution.png", width = 12, height = 6)
+```
