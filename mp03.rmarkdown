@@ -4,6 +4,8 @@ author: Chenbin Wu
 output: html
 ---
 
+
+
 ## **🎧 The Ultimate Vibe Journey: Why Chenbin's Playlist Rules the Internet**
 
 ### **Description: **
@@ -21,6 +23,8 @@ We began by importing the necessary libraries: dplyr, tidyr, stringr, purrr, jso
 - Playlists were loaded from multiple JSON files using fromJSON().
 
 - A function process_playlists() was used to transform nested JSON playlist data into a tidy, track-level dataframe.
+
+
 
 ```{r}
 #| echo: true
@@ -122,9 +126,13 @@ playlists_data <- load_playlists()
 tidy_tracks <- process_playlists(playlists_data)
 ```
 
+
+
 ### Data Exploration
 
 - ***Distinct Tracks and Artists:** Identified 226,229 unique tracks and 81,763 unique artists.
+
+
 ```{r}
 #| echo: true
 #| message: false
@@ -137,7 +145,11 @@ cat("Distinct tracks:", distinct_tracks, "\n")
 cat("Distinct artists:", distinct_artists, "\n")
 ```
 
+
+
 - ***Top Tracks:** Calculated the top 50 most frequently appearing tracks across playlists.
+
+
 ```{r}
 #| echo: true
 #| message: false
@@ -153,7 +165,11 @@ top_tracks <- tidy_tracks |>
 top_tracks
 ```
 
+
+
 - **Missing Metadata:** Identified the most frequently occurring track that was missing in the SONGS metadata.
+
+
 ```{r}
 #| echo: true
 #| message: false
@@ -170,7 +186,11 @@ missing_in_songs <- tidy_tracks |>
 missing_in_songs
 ```
 
+
+
 - ***Most Danceable Track:** Identified the track with the highest danceability score and measured its number of playlist appearances.
+
+
 ```{r}
 #| echo: true
 #| message: false
@@ -195,7 +215,11 @@ most_danceable_track <- data.frame(
 most_danceable_track
 ```
 
+
+
 - ***Playlist Duration:** Found the playlist with the longest average track duration.
+
+
 ```{r}
 #| echo: true
 #| message: false
@@ -211,7 +235,11 @@ longest_avg_playlist <- tidy_tracks |>
 longest_avg_playlist
 ```
 
+
+
 - ***Most Popular Playlist:** Identified based on follower count.
+
+
 ```{r}
 #| echo: true
 #| message: false
@@ -226,9 +254,13 @@ most_popular_playlist <- tidy_tracks |>
 most_popular_playlist
 ```
 
+
+
 ### **Track Popularity Analysis**
 
 Through our analysis of the playlists, we discovered some standout characteristics. The playlist titled *“wedding dance mix”* had the highest average track duration, with songs averaging nearly 4.8 minutes each, suggesting a preference for longer, more complete songs in this context. Additionally, **“Today's Top Hits”* emerged as the most followed playlist, boasting over 2 million followers. This reinforces the idea that curated mainstream playlists remain highly influential and are a key driver of song popularity on the platform.
+
+
 
 ```{r}
 #| echo: true
@@ -247,11 +279,15 @@ track_popularity <- joined_df |>
   )
 ```
 
+
+
 ### **Trends in Popular Analysis**
 
 - **Release Year Distribution:** 
 
 A scatter plot with a linear trendline shows a positive correlation between the number of playlists a song appears in and its average popularity. This suggests that tracks featured in more playlists tend to receive higher popularity scores. The computed correlation coefficient quantifies this relationship.
+
+
 ```{r}
 #| echo: true
 #| message: false
@@ -282,9 +318,13 @@ correlation <- cor(track_popularity$playlist_count, track_popularity$avg_popular
 cat("Correlation between playlist count and popularity:", correlation, "\n")
 ```
 
+
+
 - **Release Year Distribution:**
 
 A histogram of release years for songs with popularity scores ≥80 shows that most popular tracks were released after 2000, with a clear concentration in the 2010s and early 2020s. This aligns with Spotify’s user base favoring newer music.
+
+
 ```{r}
 #| echo: true
 #| message: false
@@ -304,8 +344,12 @@ ggplot(popular_songs, aes(x = release_year)) +
   theme_minimal()
 ```
 
+
+
 - **Danceability Over Time:** 
 A boxplot of danceability by release year indicates that songs released in recent years generally have higher danceability scores, reflecting a growing trend toward rhythm-driven, dance-friendly music.
+
+
 ```{r}
 #| echo: true
 #| message: false
@@ -322,9 +366,13 @@ ggplot(popular_songs, aes(x = release_year, y = danceability)) +
   theme_minimal()
 ```
 
+
+
 - **Decade Representation:**
 
 By categorizing songs by decade, we observe that the 2010s are the most represented on user playlists. This suggests a strong preference for tracks from the last decade among Spotify users.
+
+
 ```{r}
 #| echo: true
 #| message: false
@@ -345,9 +393,13 @@ ggplot(popular_songs, aes(x = factor(decade))) +
 
 ```
 
+
+
 - **Key Frequency (Polar Plot):**
 
 A polar bar chart visualizes the frequency of musical keys among popular tracks. Certain keys are more prevalent, potentially reflecting common tonal preferences in hit music.
+
+
 ```{r}
 #| echo: true
 #| message: false
@@ -366,9 +418,13 @@ ggplot(popular_songs, aes(x = factor(key))) +
 
 ```
 
+
+
 - **Track Length vs. Popularity:**
 
 A scatter plot with a linear model overlay shows a trend between track duration and popularity. Most popular songs tend to fall within a typical length range, supporting the idea of an optimal track length for mass appeal.
+
+
 ```{r}
 #| echo: true
 #| message: false
@@ -386,9 +442,13 @@ ggplot(popular_songs, aes(x = duration_ms / 1000, y = popularity)) +  # Convert 
   theme_minimal()
 ```
 
+
+
 - **Energy and Loudness Trends:**
 
 Additional scatter plots reveal that energy and loudness are both positively associated with popularity. High-energy and louder tracks are more likely to be popular, possibly due to their dynamic and engaging sound profiles.
+
+
 ```{r}
 #| echo: true
 #| message: false
@@ -419,18 +479,32 @@ ggplot(popular_songs, aes(x = loudness, y = popularity)) +
 ```
 
 
+
+
 ### **🎼 Playlist Curation Using Anchor Songs:**
 
 **Anchor:**
 
 We start with two foundational tracks:
+
+
 {{< video https://www.youtube.com/watch?v=nIjVuRTm-dc >}}
+
+
+
 *She Will Be Loved - Maroon 5*
 
+
+
 {{< video https://www.youtube.com/watch?v=RgKAFK5djSk >}}
+
+
+
 *See You Again (feat. Charlie Puth) - Wiz Khalifa*
 
 These emotionally resonant and tempo-balanced songs set the playlist’s center of gravity.
+
+
 
 ```{r}
 #| echo: true
@@ -445,9 +519,13 @@ anchor_songs <- SONGS |>
 anchor_playlists <- tidy_tracks |>
   filter(track_name %in% anchor_songs$name)
 ```
+
+
 **Playlist Co-occurrence:** 
 
 Songs that frequently appeared in the same playlists as the anchor tracks were identified. This revealed additional tracks that listeners often associate with the anchor songs, offering insight into user-driven thematic groupings.
+
+
 ```{r}
 #| echo: true
 #| message: false
@@ -466,9 +544,13 @@ head(other_tracks_in_playlists, 3)
 
 ```
 
+
+
 **Key and Tempo Matching:** 
 
 Tracks sharing the same musical key and with tempos within ±10 BPM of an anchor track were filtered to identify musically cohesive options.
+
+
 ```{r}
 #| echo: true
 #| message: false
@@ -488,9 +570,13 @@ related_key_tempo_songs <- SONGS |>
 head(related_key_tempo_songs, 3)
 ```
 
+
+
 **Same Artists:**
 
 We identified additional tracks by the same artists as the anchor songs, ensuring the playlist maintains a cohesive sound. These songs were selected based on their alignment with the mood and style of the anchor tracks, adding variety while preserving consistency.
+
+
 ```{r}
 #| echo: true
 #| message: false
@@ -509,9 +595,13 @@ related_artist_songs <- SONGS |>
 # Show related songs by the same artist
 head(related_artist_songs, 5)
 ```
+
+
 **Year and Mood Similarity:** 
 
 Songs released in the same year with similar acousticness and danceability values were selected to maintain temporal and mood-based consistency.
+
+
 ```{r}
 #| echo: true
 #| message: false
@@ -533,9 +623,13 @@ head(related_year_songs, 3)
 
 ```
 
+
+
 **Acoustic-Danceability Match: **
 
 Additional tracks with acousticness and danceability within ±0.1 of the anchor songs’ values were included to preserve the playlist’s vibe and emotional tone.
+
+
 ```{r}
 #| echo: true
 #| message: false
@@ -551,9 +645,13 @@ similar_mood_songs <- SONGS |>
 head(similar_mood_songs, 3)
 ```
 
+
+
 **Curated Playlist Preview: **
 
 From the analysis, a manually curated list of tracks was compiled, blending well-known hits, deeper cuts, and newer discoveries. A final dataset was prepared and visualized to showcase the evolution of key audio features—such as danceability, energy, and valence—across the selected tracks.
+
+
 ```{r}
 #| echo: true
 #| message: false
@@ -571,8 +669,12 @@ combined_songs <- bind_rows(
 head (combined_songs, 20)
 ```
 
+
+
 **The Ultimate Playlist**
 Carefully curated and constantly updated, this playlist is a go-to soundtrack for any mood, moment, or mission. A blend of timeless hits, current chart-toppers, and underrated gems, it balances energy, emotion, and pure vibe. Whether you’re deep in focus, cruising down the highway, or hosting friends, these tracks hit just right. Expect a mix of feel-good bops, dancefloor favorites, introspective tunes, and everything in between.
+
+
 
 ```{r}
 #| echo: true
@@ -638,3 +740,4 @@ ggplot(playlist_long, aes(x = name, y = value, group = feature, color = feature)
 # Save your playlist visualization (optional)
 ggsave("playlist_evolution.png", width = 12, height = 6)
 ```
+
