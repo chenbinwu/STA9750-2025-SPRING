@@ -1,3 +1,14 @@
+# Load Libraries
+library(sf)
+library(httr2)
+library(rvest)
+library(dplyr)
+library(janitor)
+library(stringr)
+library(readr)
+library(tidyr)
+library(ggplot2)
+
 # Setup Directories and File Paths
 dir_path <- "data/mp04"
 zip_url <- "https://www2.census.gov/geo/tiger/GENZ2023/shp/cb_2023_us_county_500k.zip"
@@ -27,16 +38,6 @@ if (!file.exists(shp_file)) {
   message("Shapefile already unzipped.")
 }
 
-# Load Libraries
-library(sf)
-library(httr2)
-library(rvest)
-library(dplyr)
-library(janitor)
-library(stringr)
-library(readr)
-library(tidyr)
-library(ggplot2)
 # Load shapefile
 counties_sf <- st_read(shp_file)
 glimpse(counties_sf)
@@ -373,7 +374,7 @@ counties_sf_combined |>
   ggplot() +
   geom_sf(aes(fill = shift_pct), color = "white", size = 0.1) +
   scale_fill_gradient2(
-    low = "#0041C2", mid = "white", high = "#d7301f", midpoint = 0,
+    low = "#0D52BD", mid = "white", high = "#d7301f", midpoint = 0,
     name = "Shift in % Trump Vote"
   ) +
   coord_sf(xlim = c(-125, -66), ylim = c(24, 50), expand = FALSE) +

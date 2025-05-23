@@ -4,10 +4,12 @@ author: Chenbin Wu
 output: html
 ---
 
-## Introduction ##
+## Introduction
+
 This report presents an analysis of the county-level results from the 2020 and 2024 U.S. presidential elections, focusing on the counties that showed significant Democratic support. Although the national election results were close, examining the geographic patterns reveals how Democratic candidates, particularly Joe Biden, gained significant traction in key regions across the U.S. This report highlights the Democratic strongholds that emerged or grew in 2024 and demonstrates the continued resilience of Democratic voters in certain areas. Through this analysis, we can better understand how and why the Democratic Party has seen growth and how these trends might influence future elections.
 
-## Data Collection and Preperation ##
+## Data Collection and Preperation
+
 The first step in this analysis was gathering U.S. county boundary data from the Census Bureau. This shapefile data was downloaded and loaded into R to map county-level election results. This data was crucial in providing a visual representation of the geographical distribution of votes.
 
 ```{r}
@@ -61,7 +63,8 @@ counties_sf <- st_read(shp_file)
 glimpse(counties_sf)
 ```
 
-### Collecting 2024 Data ###
+### Collecting 2024 Data
+
 For the 2024 election, county-level results were gathered through web scraping from each state’s Wikipedia page. This process ensured that the data was up-to-date and comprehensive. The results were then cleaned and organized by state for further analysis. Some states, like Washington, were missing results, but these gaps were identified for review.
 
 ```{r}
@@ -122,7 +125,7 @@ missing_states_2024 <- state_names[sapply(all_results_2024, is.null)]
 print(missing_states_2024)
 ```
 
-### Collecting 2020 Data ###
+### Collecting 2020 Data
 
 Similarly, the 2020 election data was scraped and cleaned in a similar manner to the 2024 data. Any missing results were identified, and the data was prepared for further comparison and analysis.
 
@@ -181,7 +184,7 @@ missing_states_2020 <- state_names[sapply(all_results_2020, is.null)]
 print(missing_states_2020)
 ```
 
-### Cleaning and Aggregating Election Data for 2020 and 2024 ###
+### Cleaning and Aggregating Election Data for 2020 and 2024
 
 Once both the 2020 and 2024 election data were collected, the next step was to clean and standardize the county-level results. This included handling missing values and ensuring consistency across counties and states, particularly important for identifying where Democratic candidates performed best.
 
@@ -267,9 +270,9 @@ counties_2024_sf <- counties_sf |>
   left_join(agg_2024, by = c("NAME" = "county", "STATE_NAME" = "state"))
 ```
 
-### Initial Analyzation ###
+### Initial Analyzation
 
-1. **Largest County to Vote for Trump in 2024:**
+1.  **Largest County to Vote for Trump in 2024:**
 
 In the 2024 presidential election, the county with the highest number of votes for Donald Trump was identified by analyzing geographic voting data. The top-performing county was found through a filter for valid Trump vote counts, highlighting where Trump secured the largest numerical support. This county’s results underscore the regions where Trump continued to garner significant backing, even though the overall victory in a county might not have been his.
 
@@ -285,7 +288,7 @@ counties_2024_sf |>
   select(NAME, STATE_NAME, trump_votes)
 ```
 
-2. **County with Most Vote for Biden in 2020:**
+2.  **County with Most Vote for Biden in 2020:**
 
 Kalawao County in Hawaii stands out as the county with the highest percentage of votes for Joe Biden in 2020. With an overwhelming 95.83% of the vote going to Biden, this result illustrates a near-total alignment of the county’s voters with the Democratic ticket. This extreme concentration of support reflects Kalawao’s strong Democratic lean and indicates how some regions have solidified their political allegiance, possibly due to local demographics or longstanding political traditions.
 
@@ -303,7 +306,7 @@ counties_2020_sf |>
   select(NAME, STATE_NAME, biden_votes, total_votes, biden_share)
 ```
 
-3. **Counties with the Largest Shift in Vote for Trump:**
+3.  **Counties with the Largest Shift in Vote for Trump:**
 
 A key finding is that Gwinnett County, Georgia, saw the most significant increase in Trump’s votes from 2020 to 2024, with an impressive surge of 173,041 votes. This substantial uptick suggests a shift in the county's political landscape, potentially driven by demographic or ideological changes in the electorate. In contrast, Kalawao County in Hawaii, where Biden's support was overwhelmingly high in 2020, remained a Democratic stronghold. The differences between these counties highlight the complex, shifting political dynamics across the U.S. and are indicative of broader national trends.
 
@@ -330,7 +333,7 @@ vote_change <- counties_2020_sf |>
 vote_change
 ```
 
-4. **State with the Largest Shift Towards Harris in 2024:**
+4.  **State with the Largest Shift Towards Harris in 2024:**
 
 Florida exhibited the most substantial shift in Trump’s vote share between the 2020 and 2024 elections. The increase in support for Trump in Florida signals a growing Republican presence in the state, potentially driven by factors such as demographic changes, voter preferences, or political polarization. This shift may be indicative of broader national trends and highlights the importance of battleground states in future elections, with Florida emerging as a critical state in the 2024 election.
 
@@ -365,7 +368,7 @@ state_shift <- counties_2020_sf |>
 state_shift
 ```
 
-5. **The Largest County, by Area, in This Dataset: **
+5.  **The Largest County, by Area, in This Dataset:**
 
 Yukon-Koyukuk, Alaska, stands out as the largest county by area in this dataset. Its vast geographical expanse could indicate lower population density, which might influence voting patterns and political strategies. Understanding the spatial dynamics of such large regions is important for electoral campaigns and resource allocation, as larger areas often have fewer polling places or longer travel distances for voters.
 
@@ -394,7 +397,7 @@ counties_2024_sf <- counties_2024_sf |>
   )
 ```
 
-6. **County with the Highest Voter Density in 2020?**
+6.  **County with the Highest Voter Density in 2020?**
 
 In 2020, St. Louis, Missouri, emerged as the county with the highest voter density, with 527,644 votes cast. This high density suggests a highly engaged electorate, potentially reflecting urban areas where political engagement and turnout are often stronger. Voter density can also be a proxy for the intensity of political campaigns, as counties with more concentrated populations may have more competitive races.
 
@@ -411,7 +414,7 @@ counties_2020_sf |>
   select(NAME, STATE_NAME, total_votes, ALAND, voter_density)
 ```
 
-7. **County with the Largest Increase in Voter Turnout in 2024?**
+7.  **County with the Largest Increase in Voter Turnout in 2024?**
 
 Montgomery County, Texas, saw the largest increase in voter turnout from 2020 to 2024, with a remarkable jump of 36,482 votes. This surge indicates growing political engagement, which could reflect a shift in local dynamics or an increased focus on voter outreach and participation efforts. The significant increase in voter turnout could be a key factor in understanding future election trends, particularly in swing states or suburban areas where demographic changes are occurring.
 
@@ -439,7 +442,7 @@ turnout_change <- counties_2020_sf |>
 print(turnout_change)
 ```
 
-### County-Level Shift in Trump Vote Share: 2020 to 2024 ###
+### County-Level Shift in Trump Vote Share: 2020 to 2024
 
 The county-level shift in Trump’s vote share between 2020 and 2024 reveals significant political changes across the U.S. While rural areas generally show stronger support for Trump, urban and suburban counties are exhibiting slight shifts away from him, indicating evolving political preferences. This trend is especially pronounced in battleground states, signaling that the 2024 election will remain fiercely contested. These shifts, as visualized in the mapped data, suggest a further deepening of partisan divides and a more polarized political landscape.
 
@@ -516,6 +519,6 @@ counties_sf_combined |>
   )
 ```
 
-## Conclusion ##
+## Conclusion
 
 This analysis highlights key shifts in voter behavior between the 2020 and 2024 U.S. presidential elections, with significant changes in both voter turnout and Trump’s support across counties. Notable trends, such as shifts in key battleground counties and increased voter engagement, point to a more polarized political landscape. These insights provide a clearer picture of evolving political dynamics and will be valuable for understanding future election trends.
